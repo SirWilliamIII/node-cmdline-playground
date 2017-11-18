@@ -14,24 +14,32 @@ app.engine('hbs', hbs({
     layoutsDir: __dirname + '/views/layouts/'
 }));
 app.set('view engine', 'hbs');
+app.use(bodyParser.json());
 
 ////######### XXXXXXXXX ############/////
-
-app.use(bodyParser.json());
 
 // GET
 app.get('/', (req, res) => {
     res.render('home')
 });
 
-const upload = multer({ dest: 'uploads/' }).single('image')
 
 app.post('/api/uploads', (req, res) => {
-    upload(req, res, (err) => {
-        if (err) {
-            return res.end('images only')
+    const upload = multer({
+        dest: 'uploads/',
+        limits: { size: 500000000 },
+        fileFilter: (req, file, cb) => {
+            cb(null, false)
+                //cb(null, true)
         }
-        res.end('file uploaded!')
+    }).single('image')
+
+
+    upload(req, res, function(err) {
+        if (err) {
+            return res.status(400).send('only images allowed')
+        }
+        res.send('file uploaded!')
     })
 })
 
